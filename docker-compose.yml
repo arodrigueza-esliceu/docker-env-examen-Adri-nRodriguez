@@ -1,0 +1,49 @@
+services:
+  web:
+    build: .
+    container_name: php-futbolista
+    ports:
+      - "8082:80"
+    volumes:
+      - ../proyecto-php:/var/www/html
+    depends_on:
+      - db
+
+  db:
+    image: mariadb:11
+    container_name: basededatosfutbolista
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: adrian
+      MYSQL_USER: adrian123
+      MYSQL_PASSWORD: adrian123
+    volumes:
+      - ./db:/var/lib/mysql
+    ports:
+      - "3307:3307"
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpadrianadmin
+    restart: always
+    depends_on:
+      - db
+    environment:
+      PMA_HOST: db
+      PMA_USER: futbolista
+      PMA_PASSWORD: futbolista123
+    ports:
+      - "8083:80"
+
+  browsersync:
+    image: node:20-alpine
+    container_name: browsersync2
+    working_dir: /app
+    depends_on:
+      - web
+    volumes:
+      - ../proyecto-php:/src
+    command: sh -c "npm install -g browser-sync && browser-sync start --proxy 'web:80' --files '/src/**/*.*' --no-ui --host 0.0.0.0 --port 3000"
+    ports:
+      - "3001:3001"
